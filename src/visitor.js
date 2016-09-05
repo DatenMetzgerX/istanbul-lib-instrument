@@ -25,11 +25,12 @@ function genVar(filename) {
 // VisitState holds the state of the visitor, provides helper functions
 // and is the `this` for the individual coverage visitors.
 class VisitState {
-    constructor(types, sourceFilePath) {
+    constructor(types, sourceFilePath, inputSourceMap) {
         this.varName = genVar(sourceFilePath);
         this.attrs = {};
         this.nextIgnore = null;
         this.cov = new SourceCoverage(sourceFilePath);
+        this.cov.inputSourceMap(inputSourceMap);
         this.types = types;
         this.sourceMappingURL = null;
     }
@@ -460,10 +461,12 @@ const coverageTemplate = template(`
  * @param {string} sourceFilePath - the path to source file
  * @param {Object} opts - additional options
  * @param {string} [opts.coverageVariable=__coverage__] the global coverage variable name.
+ * @param {object} [opts.inputSourceMap=undefined] the input source map, that maps the uninstrumented code back to the
+ * original code.
  */
-function programVisitor(types, sourceFilePath = 'unknown.js', opts = {coverageVariable: '__coverage__'}) {
+function programVisitor(types, sourceFilePath = 'unknown.js', opts = {coverageVariable: '__coverage__', inputSourceMap: undefined }) {
     const T = types;
-    const visitState = new VisitState(types, sourceFilePath);
+    const visitState = new VisitState(types, sourceFilePath, opts.inputSourceMap);
     return {
         enter(path) {
             path.traverse(codeVisitor, visitState);
